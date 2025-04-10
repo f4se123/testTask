@@ -45,3 +45,20 @@ Then('the result should be {string}', async function (expected) {
     const result = await this.page.textContent('h2.ng-binding');
     expect(result.trim()).toBe(expected);
 });
+
+Then('the history should show {string}', async function (historyEntry) {
+    // Отримуємо всі рядки таблиці історії операцій
+    const history = await this.page.$$eval('table.table tbody tr', rows =>
+        rows.map(row => {
+            const time = row.querySelector('td.ng-binding').innerText.trim();
+            const expressionSpans = row.querySelectorAll('span.ng-binding');
+            const expression = Array.from(expressionSpans).map(span => span.innerText.trim()).join(' '); // Перетворюємо NodeList в масив
+            const result = row.querySelector('td.ng-binding:nth-child(3)').innerText.trim();
+            return `${expression} = ${result}`;
+        })
+    );
+
+
+    // Перевіряємо, чи є потрібний запис в історії
+    expect(history).toContain(historyEntry);
+});
