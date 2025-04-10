@@ -6,34 +6,39 @@ let browser;
 let page;
 
 Before(async function () {
-    // Launch browser and create a new page
-    browser = await chromium.launch({ headless: false });
-    page = await browser.newPage();
-    this.page = page; // Attach page to the context so that it can be accessed in step definitions
+    this.browser = await chromium.launch({ headless: false });
+    this.page = await this.browser.newPage();
 });
 
 After(async function () {
-    // Close the browser after tests
-    await browser.close();
+    await this.browser.close();
 });
 
 Given('Calculator page is opened', async function () {
-    await this.page.goto('http://juliemr.github.io/protractor-demo/', { timeout: 15000 }); // Increased timeout
+    await this.page.goto('http://juliemr.github.io/protractor-demo/', { timeout: 15000 });
 });
 
-When('Calculate {string} {string} {string}', async function (first, operator, second) {
-    await this.page.waitForSelector('input [ng-model="first"]', { timeout: 15000 }); // Increased timeout
-    await this.page.fill('input [ng-model="first"]', first);
+When('Calculate {string} {string} {string}', { timeout: 20000 }, async function (first, operator, second) {
+    await this.page.waitForSelector('input[ng-model="first"]', { timeout: 15000 });
+    await this.page.fill('input[ng-model="first"]', first);
 
-    await this.page.waitForSelector('select [ng-model="operator"]', { timeout: 15000 }); // Increased timeout
-    await this.page.selectOption('select [ng-model="operator"]', operator);
+    await this.page.waitForSelector('select[ng-model="operator"]', { timeout: 15000 });
+    const operatorMap = {
+        '+': 'ADDITION',
+        '-': 'SUBTRACTION',
+        '*': 'MULTIPLICATION',
+        '/': 'DIVISION',
+        '%': 'MODULO',
+    };
+    await this.page.selectOption('select[ng-model="operator"]', operatorMap[operator]);
 
-    await this.page.waitForSelector('input [ng-model="second"]', { timeout: 15000 }); // Increased timeout
-    await this.page.fill('input [ng-model="second"]', second);
+    await this.page.waitForSelector('input[ng-model="second"]', { timeout: 15000 });
+    await this.page.fill('input[ng-model="second"]', second);
 
-    await this.page.waitForSelector('#gobutton', { timeout: 15000 }); // Increased timeout
+    await this.page.waitForSelector('#gobutton', { timeout: 15000 });
     await this.page.click('#gobutton');
-    await this.page.waitForSelector('h2.ng-binding', { timeout: 40000 }); // Increased timeout
+    await this.page.waitForSelector('h2.ng-binding', { timeout: 40000 });
+    await this.page.waitForTimeout(5000);
 });
 
 Then('the result should be {string}', async function (expected) {
